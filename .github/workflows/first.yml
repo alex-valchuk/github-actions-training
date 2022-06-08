@@ -1,25 +1,12 @@
-name: first
+name: Python application
 
 on: push
 
 jobs:
-  ubuntu:
+  build:
     runs-on: ubuntu-latest
     steps:
-    - run: date
-
-  windows:
-    runs-on: windows-latest
-    steps:
-    - run: Get-Date
-
-  macos:
-    runs-on: macos-latest
-    steps:
-    - run: date
-
-  depends:
-    runs-on: macos-latest
-    needs: [ubuntu, windows, macos]
-    steps:
-    - run: date
+    - name: Check out the code
+      uses: actions/checkout@v2
+    - name: Python Syntax Checker
+      uses: cclauss/Find-Python-syntax-errors-action@v0.2.0
