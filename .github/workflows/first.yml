@@ -1,12 +1,30 @@
-name: Python application
-
+name: Environment Variables
+env: 
+  WORKSPACE_ENVIRONMENT_VARIABLE: 'Workspace environment variable'
+  OVER_RIDE: 'Workflow'
 on: push
 
 jobs:
-  build:
+  ubuntu:
+    env:
+      JOB_ENVIRONMENT_VARIABLE: 'Job environment variable for Ubuntu'
+      OVER_RIDE: 'Job'
     runs-on: ubuntu-latest
     steps:
-    - name: Check out the code
-      uses: actions/checkout@v2
-    - name: Python Syntax Checker
-      uses: cclauss/Find-Python-syntax-errors-action@v0.2.0
+      - name: Print custom environment variables from ubuntu-latest
+        env:
+          STEP_ENVIRONMENT_VARIABLE: 'Step environment variable for Bash'
+        run: |
+          echo "Accessing environment variables using shell syntax"
+          echo "1. $WORKSPACE_ENVIRONMENT_VARIABLE"
+          echo "2. $JOB_ENVIRONMENT_VARIABLE"
+          echo "3. $STEP_ENVIRONMENT_VARIABLE"
+          echo "4. $OVER_RIDE"
+          echo ""
+          echo "-----------"
+          echo ""
+          echo "Accessing environment variables using YAML syntax"
+          echo "5. ${{ env.WORKSPACE_ENVIRONMENT_VARIABLE }}"
+          echo "6. ${{ env.JOB_ENVIRONMENT_VARIABLE }}"
+          echo "7. ${{ env.STEP_ENVIRONMENT_VARIABLE }}"
+          echo "8. ${{ env.OVER_RIDE }}"
