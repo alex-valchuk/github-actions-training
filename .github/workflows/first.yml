@@ -1,67 +1,48 @@
-name: artifact
+name: Auto Merge PR
 
-on: push
+on: 
+  pull_request:
+    types: [opened, reopened]
 
 env:
   FILE_NAME: hello-server
 
 jobs:
-  build:
-    name: Build
+  lint:
     runs-on: ubuntu-latest
-
     steps:
-    - name: Check out code
-      uses: actions/checkout@v1
 
-    - name: Build ${{ env.FILE_NAME }} for ubuntu-latest
-      run: go build ${{ env.FILE_NAME }}.go
+      - uses: actions/checkout@v1
 
-    - name: Build ${{ env.FILE_NAME }} for windows-latest
-      run: GOOS=windows GOARCH=amd64 go build ${{ env.FILE_NAME }}.go
+      - uses: actions/setup-python@v1
+        with:
+          python-version: 3.8
 
-    - name: Upload artifact for linux
-      uses: actions/upload-artifact@v1.0.0
-      with:
-        name: linux
-        path: ./${{ env.FILE_NAME }}
+      - name: flake8 and pylint
+        run: |
+          pip install -r requirements.txt
+          flake8 --ignore=E501,E231 *.py tests/*.py
+          pylint --errors-only --disable=C0301 --disable=C0326 *.py tests/*.py
 
-    - name: Upload artifact for windows
-      uses: actions/upload-artifact@v1.0.0
-      with:
-        name: windows
-        path: ./${{ env.FILE_NAME }}.exe
+      - name: unit test
+        run: python -m unittest --verbose --failfast
 
-  test-linux:
-    name: Test Linux
+  merge:
+    if: github.actor == 'alex-valchuk' || github.actor == 'octocat'
+    needs: lint
     runs-on: ubuntu-latest
-    needs: build
+    environment: github-actions-training
+
     steps:
-      - name: Check out code
-        uses: actions/checkout@v1
 
-      - name: Download artifact
-        uses: actions/download-artifact@v1.0.0
-        with:
-          name: linux
-
-      - name: Test ${{ env.FILE_NAME }}
-        run: source ./test.sh
-
-  test-windows:
-    name: Test Windows
-    runs-on: windows-latest
-    needs: build
-    steps:
-      - name: Check out code
-        uses: actions/checkout@v1
-
-      - name: Download artifact
-        uses: actions/download-artifact@v1.0.0
-        with:
-          name: windows
-
-      - name: Test ${{ env.FILE_NAME }}
-        run: windows/${{ env.FILE_NAME }}
-
+      - run: git config --global --add safe.directory /github/workspace
       
+      - uses: actions/checkout@v1
+
+      - uses: hmarr/auto-approve-action@v2.0.0
+        with:
+           github-token: ${{ secrets.MY_GITHUB_TOKEN }}
+      
+      - uses: managedkaos/merge-pull-request@v1.2
+        env:
+           GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
