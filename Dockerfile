@@ -1,20 +1,14 @@
-FROM python:3.6
+FROM alpine
 
-WORKDIR /app
+RUN apk add --no-cache \
+        bash \
+        httpie \
+        jq && \
+        which bash && \
+        which http && \
+        which jq
 
-COPY . /app
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY sample_push_event.json /sample_push_event.json
 
-RUN pip install --upgrade pip && \
-    pip install \
-        Flask \
-        awscli \
-        flake8 \
-        pylint \
-        pytest \
-        pytest-flask \
-
-EXPOSE 8080
-
-ENTRYPOINT [ "python" ]
-HEALTHCHECK CMD curl --fail http://localhost:8080/ || exit 1
-CMD [ "/app/app.py" ]
+ENTRYPOINT [ "entrypoint.sh" ]
